@@ -25,9 +25,8 @@ badges:
 
 # Pedestrian flow model
 flow:
-  decay_constant: 400      # meters (exp(-d/400))
-  max_radius: 800           # meters - stations within this radius
-  buffer_meters: 800        # buffer for bulk station query
+  max_radius: 500           # meters - 半径500m以内の駅乗降客数を単純合計
+  buffer_meters: 800        # buffer for bulk station query (cache 互換のため800のまま)
 
 # Surrounding facility analysis
 facility:

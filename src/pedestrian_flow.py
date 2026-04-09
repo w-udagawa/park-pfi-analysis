@@ -1,7 +1,6 @@
-"""Pedestrian flow scoring based on station ridership with distance decay."""
+"""Pedestrian flow scoring: simple sum of ridership for stations within radius."""
 
-import math
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from .geo_utils import points_within_radius
 
@@ -9,29 +8,23 @@ from .geo_utils import points_within_radius
 def calculate_flow_score(
     park: Dict[str, Any],
     stations: List[Dict[str, Any]],
-    max_radius: float = 800,
-    decay_constant: float = 400,
+    radius_m: float = 500,
 ) -> Dict[str, Any]:
-    """Calculate raw flow score for a single park.
+    """半径 radius_m 以内の駅乗降客数を単純合計する。
 
-    flow_score = Σ (ridership × exp(-distance / decay_constant))
-    for all stations within max_radius.
+    raw_score = Σ ridership   for all stations within radius_m
     """
-    nearby = points_within_radius(
-        park["lat"], park["lon"], stations, max_radius
-    )
+    nearby = points_within_radius(park["lat"], park["lon"], stations, radius_m)
 
     raw_score = 0.0
     station_details = []
     for station, dist in nearby:
-        ridership = station.get("ridership", 0)
-        contribution = ridership * math.exp(-dist / decay_constant)
-        raw_score += contribution
+        ridership = station.get("ridership", 0) or 0
+        raw_score += ridership
         station_details.append({
             "name": station["name"],
             "distance_m": round(dist),
             "ridership": ridership,
-            "contribution": round(contribution, 1),
         })
 
     nearest_station = station_details[0] if station_details else None
@@ -53,14 +46,12 @@ def calculate_all_flow_scores(
 
     Returns dict keyed by park name with flow data + normalized score (0-100).
     """
-    max_radius = config["flow"]["max_radius"]
-    decay_constant = config["flow"]["decay_constant"]
+    radius_m = config["flow"]["max_radius"]
 
     # Calculate raw scores
     results = {}
     for park in parks:
-        flow_data = calculate_flow_score(park, stations, max_radius, decay_constant)
-        results[park["name"]] = flow_data
+        results[park["name"]] = calculate_flow_score(park, stations, radius_m)
 
     # Percentile normalization (rank-based 0-100)
     raw_scores = [(name, data["raw_score"]) for name, data in results.items()]

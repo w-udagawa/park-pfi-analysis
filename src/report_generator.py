@@ -462,10 +462,11 @@ def _write_methodology(ws, config: dict):
     row = paragraph(row, "旧実装では「流量上位40%（percentile≥60）」かつ「商業施設2件以上」のAND条件を足切りとしていたため、約90%の公園がスコア0となっていた。相対評価として連続スコアに変更することで、低スコア帯の公園間でも比較が可能になり、サブバッジと組み合わせた多面的な候補抽出ができるようになった。", indent=True)
     row = blank(row)
     row = paragraph(row, "パーセンタイル正規化の意味:", bold=True)
-    row = paragraph(row, "flow_percentile は駅乗降客数の距離減衰合計を自治体内で順位化した相対指標。絶対的な乗降客数ではなく「その自治体における人流の多さランク」を表すため、都心部でも地方都市でも同じ物差しで評価できる設計としている。", indent=True)
+    row = paragraph(row, "flow_percentile は半径500m圏内の駅乗降客数の合計を自治体内で順位化した相対指標。絶対的な乗降客数ではなく「その自治体における人流の多さランク」を表すため、都心部でも地方都市でも同じ物差しで評価できる設計としている。", indent=True)
     row = blank(row)
-    row = paragraph(row, f"pedestrian_flow の距離減衰式:", bold=True)
-    row = paragraph(row, f"raw_score = Σ(駅乗降客数 × exp(-距離 / {config['flow']['decay_constant']}m))（半径{config['flow']['max_radius']}m以内の全駅）→ 全公園内でパーセンタイル正規化し 0–100 に変換。", indent=True)
+    row = paragraph(row, f"pedestrian_flow の計算式:", bold=True)
+    row = paragraph(row, f"raw_score = Σ(駅乗降客数)（公園重心から半径{config['flow']['max_radius']}m以内の全駅）→ 全公園内でパーセンタイル正規化し 0–100 に変換。", indent=True)
+    row = paragraph(row, f"半径{config['flow']['max_radius']}m を採用した理由: (1) 徒歩6〜7分の実用的な駅アクセス圏に相当し、「実際に公園まで歩いてくる人流」を直接評価できる。(2) 周辺施設分析（半径500m）と物差しを揃えることで、にぎわいスコア2要素（流量・商業）の評価半径が一致し解釈が容易になる。距離減衰関数は採用せず、各駅の乗降客数を等しく加算する単純合計とした。", indent=True)
     row = blank(row)
 
     # -----------------------------------------------------------------
@@ -707,7 +708,7 @@ def _write_pedestrian_flow(ws, scored_parks: List[Dict]):
     headers = [
         "順位", "公園名", "流量スコア(正規化)", "流量スコア(生値)",
         "最寄駅", "最寄駅距離(m)", "最寄駅乗降客数",
-        "800m内駅数",
+        "500m内駅数",
     ]
     _write_row(ws, 1, headers)
     _style_header(ws, 1)
