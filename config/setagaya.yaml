@@ -1,0 +1,18 @@
+# Setagaya Ward specific configuration
+municipality:
+  name: "世田谷区"
+  filter_field: "管理市区町村"
+  filter_value: "世田谷区"
+
+# GeoJSON source
+geojson_path: "/mnt/c/ClaudeWork/park-redevelopment-analysis/data/tokyo_parks.geojson"
+
+# Bounding box (Setagaya ward approximate bounds)
+bbox:
+  top_lat: 35.680
+  bottom_lat: 35.600
+  left_lon: 139.580
+  right_lon: 139.690
+
+# Overpass area name
+overpass_area: "世田谷区"

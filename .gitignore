@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Secrets
+.streamlit/secrets.toml
+.env
+
+# Outputs (keep structure, ignore contents)
+output/*.xlsx
+output/*.md
+!output/.gitkeep
+
+# Cache (ephemeral; commit selectively if pre-warming)
+data/cache/*.json
+!data/cache/.gitkeep
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code local metadata
+.claude/

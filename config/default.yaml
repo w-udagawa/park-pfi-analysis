@@ -1,0 +1,68 @@
+# Park-PFI Potential Analysis - Default Configuration
+# にぎわい創出ポテンシャル一本軸ランキング
+
+# にぎわいスコア計算パラメータ
+vibrancy:
+  flow_weight: 0.6            # flow_percentile の重み
+  commercial_weight: 0.4      # commercial_score の重み
+  commercial_divisor: 8       # commercial_count / divisor * 100 で正規化
+
+# Rank thresholds (にぎわいスコアベース)
+ranks:
+  A: 75
+  B: 50
+  C: 25
+  # D: < 25
+
+# サブ評価バッジのしきい値
+badges:
+  aging_years: 30             # 老朽バッジ: 築年数
+  childcare_min: 2            # 子育てバッジ: childcare+education 合計数
+  community_public_min: 1     # 地域拠点バッジ: 公共施設数
+  community_medical_min: 1    # 地域拠点バッジ: 医療施設数
+  disaster_min_area: 3000     # 防災バッジ: 面積 (m²)
+  disaster_park_types: [2, 3, 4]  # 防災バッジ対象の公園種別 (近隣/地区/総合)
+
+# Pedestrian flow model
+flow:
+  decay_constant: 400      # meters (exp(-d/400))
+  max_radius: 800           # meters - stations within this radius
+  buffer_meters: 800        # buffer for bulk station query
+
+# Surrounding facility analysis
+facility:
+  radius: 500               # meters
+  buffer_meters: 500        # buffer for bulk facility query
+
+# MLIT DPF API
+dpf:
+  endpoint: "https://www.mlit-data.jp/api/v1/"
+  page_size: 500
+  datasets:
+    stations: "nlni_ksj-s12"       # S12: railway stations
+    welfare: "nlni_ksj-p14"        # P14: welfare facilities
+    medical: "nlni_ksj-p04"        # P04: medical institutions
+    public: "nlni_ksj-p02"         # P02: public facilities
+    # commercial: via Overpass API (no DPF equivalent)
+
+# Overpass API
+overpass:
+  endpoint: "https://overpass-api.de/api/interpreter"
+  timeout: 60
+
+# Cache
+cache:
+  directory: "data/cache"
+  ttl_hours: 168            # 7 days
+
+# Park minimum area filter (m2)
+min_area: 960
+
+# Report
+report:
+  top_n_summary: 20
+  top_n_carte: 30
+  top_n_radar: 10            # Number of parks with radar charts in carte
+  enable_3d_links: true      # Add Google Earth / PLATEAU VIEW hyperlinks
+  enable_charts: true        # Add Excel charts (bar, pie, radar)
+  enable_data_validation: true  # Run data coverage diagnostics
