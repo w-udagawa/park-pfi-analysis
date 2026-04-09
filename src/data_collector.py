@@ -487,11 +487,43 @@ def fetch_overpass_data(config: dict) -> Dict[str, List[Dict[str, Any]]]:
     out center;
     """.strip()
 
-    endpoint = config["overpass"]["endpoint"]
-    resp = requests.post(endpoint, data={"data": query}, timeout=config["overpass"]["timeout"] + 10)
-    resp.raise_for_status()
-    elements = resp.json().get("elements", [])
-    print(f"  [API] overpass: {len(elements)} elements")
+    # Try multiple Overpass endpoints with retries (公開エンドポイントは混雑しがち)
+    fallback_endpoints = [
+        config["overpass"]["endpoint"],
+        "https://overpass.kumi.systems/api/interpreter",
+        "https://overpass.private.coffee/api/interpreter",
+        "https://overpass.openstreetmap.fr/api/interpreter",
+    ]
+    # 重複除去(順序維持)
+    seen = set()
+    endpoints = [e for e in fallback_endpoints if not (e in seen or seen.add(e))]
+
+    timeout_sec = config["overpass"]["timeout"] + 30
+    elements = None
+    last_error = None
+    for endpoint in endpoints:
+        for attempt in range(2):
+            try:
+                print(f"  [API] overpass POST {endpoint} (attempt {attempt + 1})")
+                resp = requests.post(endpoint, data={"data": query}, timeout=timeout_sec)
+                resp.raise_for_status()
+                elements = resp.json().get("elements", [])
+                print(f"  [API] overpass: {len(elements)} elements")
+                break
+            except (requests.HTTPError, requests.ConnectionError, requests.Timeout, ValueError) as e:
+                last_error = e
+                status = getattr(getattr(e, "response", None), "status_code", None)
+                print(f"  [warn] overpass {endpoint} failed: {type(e).__name__} {status or ''}")
+                # 504/429/503なら同じエンドポイントで1回リトライ。それ以外は次のエンドポイントへ
+                if status not in (429, 503, 504):
+                    break
+        if elements is not None:
+            break
+
+    if elements is None:
+        raise RuntimeError(
+            f"Overpass API: 全エンドポイントが失敗しました。最後のエラー: {last_error}"
+        )
 
     # Classify elements
     result: Dict[str, List[Dict]] = {
