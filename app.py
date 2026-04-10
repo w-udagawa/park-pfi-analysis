@@ -328,7 +328,7 @@ with tab_profile:
 
         st.metric("にぎわいスコア", f"{v['score']:.1f}", f"ランク {v['rank']}")
 
-        # 最寄駅・500m合計乗降のサマリ (新規追加)
+        # 最寄駅・700m合計乗降のサマリ
         if nearest_station:
             st.write(
                 f"**最寄駅**: {nearest_station['name']} "
