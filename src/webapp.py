@@ -33,15 +33,19 @@ def geojson_path_for(prefecture: str, geojson_dir: Path) -> Path:
 
 
 def load_municipalities(prefecture: str, geojson_dir: Path) -> List[str]:
-    """指定都道府県の GeoJSON から 管理市区町村 のユニーク値を抽出して返す。"""
+    """指定都道府県の GeoJSON から 所在地市区町村名 のユニーク値を抽出して返す。
+
+    「所在地市区町村名」を使うことで、都道府県管理の公園（管理市区町村が空白）も
+    正しくその所在地の自治体に含まれる。
+    """
     path = geojson_path_for(prefecture, geojson_dir)
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     municipalities = set()
     for feature in data.get("features", []):
-        name = feature.get("properties", {}).get("管理市区町村")
-        if name:
+        name = feature.get("properties", {}).get("所在地市区町村名")
+        if name and name.strip():
             municipalities.add(name)
     return sorted(municipalities)
 
@@ -49,7 +53,7 @@ def load_municipalities(prefecture: str, geojson_dir: Path) -> List[str]:
 def compute_bbox(
     geojson_path: Path,
     municipality: str,
-    filter_field: str = "管理市区町村",
+    filter_field: str = "所在地市区町村名",
     margin_deg: float = 0.01,
     min_area_m2: float = 0,
 ) -> Dict[str, float]:
@@ -120,7 +124,7 @@ def build_config_dict(
     override = {
         "municipality": {
             "name": municipality,
-            "filter_field": "管理市区町村",
+            "filter_field": "所在地市区町村名",
             "filter_value": municipality,
         },
         "geojson_path": str(geojson_path),

@@ -1,7 +1,7 @@
 # Setagaya Ward specific configuration
 municipality:
   name: "世田谷区"
-  filter_field: "管理市区町村"
+  filter_field: "所在地市区町村名"
   filter_value: "世田谷区"
 
 # GeoJSON source
