@@ -155,7 +155,7 @@ if "scored_parks" not in st.session_state:
 
         ### 評価手法
         - **にぎわいスコア = 流量%ile × 0.6 + 商業スコア × 0.4**（0〜100連続スコア）
-        - 半径500m圏内の駅乗降客数の合計を自治体内でパーセンタイル正規化
+        - 半径700m圏内の駅乗降客数の合計を自治体内でパーセンタイル正規化
         - 目的地型商業（飲食・物販・カフェ等）の半径500m圏内密度
 
         詳細は分析後の「評価基準・解説」タブを参照。
@@ -220,7 +220,7 @@ with tab_rank:
         "にぎわい": round(p["vibrancy"]["score"], 1),
         "ランク": p["vibrancy"]["rank"],
         "流量%ile": round(p["vibrancy"]["flow_percentile"], 1),
-        "500m乗降合計": int(p.get("flow", {}).get("raw_score", 0)),
+        "700m乗降合計": int(p.get("flow", {}).get("raw_score", 0)),
         "商業数": p["vibrancy"]["commercial_count"],
         "老朽": "●" if p["badges"]["aging"] else "",
         "子育て": "●" if p["badges"]["childcare"] else "",
@@ -241,7 +241,7 @@ with tab_rank:
                 "にぎわい", format="%.1f", min_value=0, max_value=100
             ),
             "流量%ile": st.column_config.NumberColumn(format="%.1f"),
-            "500m乗降合計": st.column_config.NumberColumn(format="%d"),
+            "700m乗降合計": st.column_config.NumberColumn(format="%d"),
             "面積(m²)": st.column_config.NumberColumn(format="%d"),
         },
     )
@@ -335,9 +335,9 @@ with tab_profile:
                 f"({nearest_station['distance_m']}m、乗降 {nearest_station['ridership']:,})"
             )
         else:
-            st.write("**最寄駅**: 500m圏内になし")
+            st.write("**最寄駅**: 700m圏内になし")
         st.write(
-            f"**500m圏内 合計乗降客数**: {total_ridership:,} 人 "
+            f"**700m圏内 合計乗降客数**: {total_ridership:,} 人 "
             f"({station_count}駅)"
         )
 
@@ -380,7 +380,7 @@ with tab_profile:
     st.markdown("---")
     col_s, col_f = st.columns(2)
     with col_s:
-        st.write("**500m圏内の駅**")
+        st.write("**700m圏内の駅**")
         stations = p.get("flow", {}).get("station_details", [])
         if stations:
             st.write(
@@ -392,7 +392,7 @@ with tab_profile:
                     f"({st_info['distance_m']}m、乗降{st_info['ridership']:,})"
                 )
         else:
-            st.write("500m圏内に駅なし")
+            st.write("700m圏内に駅なし")
 
     with col_f:
         st.write("**周辺施設（半径500m）**")
@@ -471,9 +471,9 @@ commercial_score = min(commercial_count / 8 × 100, 100)
 
 ### パーセンタイル正規化
 
-flow_percentile は **半径500m圏内の駅乗降客数の合計** を自治体内で順位化した相対指標。自治体間ではなく「その自治体内での人流ランク」を測る。距離減衰関数は採用せず、各駅の乗降客数を等しく加算する単純合計とした。
+flow_percentile は **半径700m圏内の駅乗降客数の合計** を自治体内で順位化した相対指標。自治体間ではなく「その自治体内での人流ランク」を測る。距離減衰関数は採用せず、各駅の乗降客数を等しく加算する単純合計とした。
 
-**500m半径を採用した理由**: (1) 徒歩6〜7分の実用的な駅アクセス圏に相当し、「実際に公園まで歩いてくる人流」を直接評価できる。(2) 周辺施設分析（半径500m）と物差しを揃えることで、にぎわいスコア2要素（流量・商業）の評価半径が一致し解釈が容易になる。
+**700m半径を採用した理由**: (1) 徒歩8〜9分の実用的な駅アクセス圏に相当し、ターミナル駅から少し離れた好立地公園（例: 北谷公園←渋谷駅623m）の人流を正しく捕捉できる。(2) 500mでは渋谷駅クラスの大型駅からの人流が評価に反映されないケースがあったため拡張。
 
 ---
 

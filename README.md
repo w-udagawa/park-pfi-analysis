@@ -159,7 +159,7 @@ vibrancy_score = flow_percentile × 0.6 + commercial_score × 0.4
 commercial_score = min(commercial_count / 8 × 100, 100)
 ```
 
-- **flow_percentile**: 半径500m以内の全駅の乗降客数を単純合計し、自治体内でパーセンタイル正規化 (0–100)
+- **flow_percentile**: 半径700m以内の全駅の乗降客数を単純合計し、自治体内でパーセンタイル正規化 (0–100)
 - **commercial_count**: 半径500m以内の **目的地型** 商業施設数（OpenStreetMap 由来）
 
 ハード足切りなし。全公園に連続スコアを付与し、スコア降順でランキング。

@@ -16,7 +16,7 @@ main.py                           # run_pipeline() + CLI エントリ
   ├── src/webapp.py               # Web 用ヘルパー (自治体選択・bbox 計算・config 構築)
   ├── src/data_collector.py       # GeoJSON + MLIT DPF + Overpass API データ収集 (cache 付き)
   ├── src/data_validator.py       # データ品質診断
-  ├── src/pedestrian_flow.py      # 半径500m圏の駅乗降客数を単純合計 + パーセンタイル正規化
+  ├── src/pedestrian_flow.py      # 半径700m圏の駅乗降客数を単純合計 + パーセンタイル正規化
   ├── src/surrounding_analysis.py # 周辺施設 6 カテゴリ分析 (半径 500m)
   ├── src/vibrancy_evaluator.py   # にぎわいスコア計算 + 4 バッジ判定
   └── src/report_generator.py     # Excel (9 シート) + Markdown レポート
@@ -53,7 +53,7 @@ vibrancy_score = flow_percentile × 0.6 + commercial_score × 0.4
 commercial_score = min(commercial_count / 8 × 100, 100)
 ```
 
-- **flow_percentile**: 半径 500m 以内の駅乗降客数の **単純合計** を自治体内でパーセンタイル正規化 (0-100)。距離減衰なし、「徒歩 6〜7 分の駅人流」のみを評価
+- **flow_percentile**: 半径 700m 以内の駅乗降客数の **単純合計** を自治体内でパーセンタイル正規化 (0-100)。距離減衰なし、「徒歩 8〜9 分の駅人流」を評価
 - **commercial_count**: 半径 500m 以内の **目的地型** 商業施設数 (OSM 由来、コンビニ等の日常型は除外)
 - ハード足切りなし、連続スコアで全公園をランキング
 
@@ -101,7 +101,7 @@ commercial_score = min(commercial_count / 8 × 100, 100)
     "lat": float, "lon": float,
     "flow": {
         "normalized_score": float,    # 流量パーセンタイル (0-100)
-        "raw_score": float,           # 半径500m内の乗降客数合計
+        "raw_score": float,           # 半径700m内の乗降客数合計
         "station_count": int,
         "nearest_station": {...},
         "station_details": [...],
@@ -132,7 +132,7 @@ commercial_score = min(commercial_count / 8 × 100, 100)
 
 ## 設定ファイル
 
-- `config/default.yaml` — デフォルトパラメータ (にぎわい重み、バッジしきい値、flow.max_radius=500、DPF/Overpass エンドポイント等)
+- `config/default.yaml` — デフォルトパラメータ (にぎわい重み、バッジしきい値、flow.max_radius=700、DPF/Overpass エンドポイント等)
 - `config/setagaya.yaml` — CLI モード用のサンプル自治体設定 (世田谷区)
 
 Web アプリは `setagaya.yaml` を使わず、`src/webapp.build_config_dict()` が選択された自治体から動的に dict を組み立てる。
@@ -183,4 +183,4 @@ Web アプリは `setagaya.yaml` を使わず、`src/webapp.build_config_dict()`
 - **v1**: 5 軸複合スコア (flow 30% + facility_mix 25% + condition 20% + area 15% + access 10%) + 5 類型分類 (老朽/子育て/にぎわい/防災/地域拠点)
 - **v2**: スコア競合により「にぎわい創出型」が primary 判定 1 件のみに埋没する問題が発覚 → 北谷公園 (渋谷区) 現地調査の知見に基づき **にぎわい 1 軸 + 4 バッジ** に再設計
 - **v3**: CLI から Streamlit Web アプリ化、1 都 3 県対応
-- **v4**: 流量モデルを距離減衰 (exp(-d/400), 800m 半径) から **500m 半径の単純合計** に簡素化 (周辺施設分析と物差しを統一)
+- **v4**: 流量モデルを距離減衰 (exp(-d/400), 800m 半径) から **700m 半径の単純合計** に簡素化。北谷公園 (渋谷駅 623m) のような好立地を正しく捕捉するため 500m → 700m に拡張

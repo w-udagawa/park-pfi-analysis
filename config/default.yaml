@@ -25,7 +25,7 @@ badges:
 
 # Pedestrian flow model
 flow:
-  max_radius: 500           # meters - 半径500m以内の駅乗降客数を単純合計
+  max_radius: 700           # meters - 半径700m以内の駅乗降客数を単純合計 (徒歩8-9分)
   buffer_meters: 800        # buffer for bulk station query (cache 互換のため800のまま)
 
 # Surrounding facility analysis

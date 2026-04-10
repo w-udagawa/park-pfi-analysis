@@ -462,7 +462,7 @@ def _write_methodology(ws, config: dict):
     row = paragraph(row, "旧実装では「流量上位40%（percentile≥60）」かつ「商業施設2件以上」のAND条件を足切りとしていたため、約90%の公園がスコア0となっていた。相対評価として連続スコアに変更することで、低スコア帯の公園間でも比較が可能になり、サブバッジと組み合わせた多面的な候補抽出ができるようになった。", indent=True)
     row = blank(row)
     row = paragraph(row, "パーセンタイル正規化の意味:", bold=True)
-    row = paragraph(row, "flow_percentile は半径500m圏内の駅乗降客数の合計を自治体内で順位化した相対指標。絶対的な乗降客数ではなく「その自治体における人流の多さランク」を表すため、都心部でも地方都市でも同じ物差しで評価できる設計としている。", indent=True)
+    row = paragraph(row, f"flow_percentile は半径{config['flow']['max_radius']}m圏内の駅乗降客数の合計を自治体内で順位化した相対指標。絶対的な乗降客数ではなく「その自治体における人流の多さランク」を表すため、都心部でも地方都市でも同じ物差しで評価できる設計としている。", indent=True)
     row = blank(row)
     row = paragraph(row, f"pedestrian_flow の計算式:", bold=True)
     row = paragraph(row, f"raw_score = Σ(駅乗降客数)（公園重心から半径{config['flow']['max_radius']}m以内の全駅）→ 全公園内でパーセンタイル正規化し 0–100 に変換。", indent=True)
@@ -707,7 +707,7 @@ def _write_pedestrian_flow(ws, scored_parks: List[Dict]):
 
     headers = [
         "順位", "公園名", "流量スコア(正規化)",
-        "500m圏内 合計乗降客数", "500m内駅数",
+        "700m圏内 合計乗降客数", "700m内駅数",
         "最寄駅", "最寄駅距離(m)", "最寄駅乗降客数",
     ]
     _write_row(ws, 1, headers)
@@ -742,7 +742,7 @@ def _write_pedestrian_flow(ws, scored_parks: List[Dict]):
         f"C2:C{last_row}",
         DataBarRule(start_type="min", end_type="max", color="5B9BD5"),
     )
-    # 500m圏内 合計乗降客数 — ヒートマップ (主指標)
+    # 700m圏内 合計乗降客数 — ヒートマップ (主指標)
     ws.conditional_formatting.add(
         f"D2:D{last_row}",
         ColorScaleRule(
@@ -898,7 +898,7 @@ def _write_park_carte(ws, scored_parks: List[Dict], config: dict):
         flow = p.get("flow", {})
         stations = flow.get("station_details", [])
         if stations:
-            ws.cell(row=row, column=1, value="500m圏内 駅まとめ").font = SUB_HEADER_FONT
+            ws.cell(row=row, column=1, value="700m圏内 駅まとめ").font = SUB_HEADER_FONT
             row += 1
             total_ridership = int(flow.get("raw_score", 0))
             station_count = flow.get("station_count", 0)
