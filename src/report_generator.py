@@ -706,9 +706,9 @@ def _write_pedestrian_flow(ws, scored_parks: List[Dict]):
     ws.title = "歩行者流量"
 
     headers = [
-        "順位", "公園名", "流量スコア(正規化)", "流量スコア(生値)",
+        "順位", "公園名", "流量スコア(正規化)",
+        "500m圏内 合計乗降客数", "500m内駅数",
         "最寄駅", "最寄駅距離(m)", "最寄駅乗降客数",
-        "500m内駅数",
     ]
     _write_row(ws, 1, headers)
     _style_header(ws, 1)
@@ -723,26 +723,28 @@ def _write_pedestrian_flow(ws, scored_parks: List[Dict]):
             i + 1,
             p["name"],
             round(flow.get("normalized_score", 0), 1),
-            round(flow.get("raw_score", 0), 1),
+            int(flow.get("raw_score", 0)),
+            flow.get("station_count", 0),
             nearest["name"] if nearest else "なし",
             round(nearest["distance_m"]) if nearest else "",
             nearest["ridership"] if nearest else "",
-            flow.get("station_count", 0),
         ]
         _write_row(ws, row, vals)
         ws.cell(row=row, column=3).number_format = '0.0'
-        ws.cell(row=row, column=4).number_format = '0.0'
+        ws.cell(row=row, column=4).number_format = '#,##0'
         if nearest and nearest.get("ridership"):
-            ws.cell(row=row, column=7).number_format = '#,##0'
+            ws.cell(row=row, column=8).number_format = '#,##0'
 
     last_row = len(by_flow) + 1
 
+    # 流量スコア(正規化) — DataBar
     ws.conditional_formatting.add(
         f"C2:C{last_row}",
         DataBarRule(start_type="min", end_type="max", color="5B9BD5"),
     )
+    # 500m圏内 合計乗降客数 — ヒートマップ (主指標)
     ws.conditional_formatting.add(
-        f"G2:G{last_row}",
+        f"D2:D{last_row}",
         ColorScaleRule(
             start_type="min", start_color="FFFFFF",
             end_type="max", end_color="4472C4",
@@ -896,7 +898,16 @@ def _write_park_carte(ws, scored_parks: List[Dict], config: dict):
         flow = p.get("flow", {})
         stations = flow.get("station_details", [])
         if stations:
-            ws.cell(row=row, column=1, value="最寄駅").font = SUB_HEADER_FONT
+            ws.cell(row=row, column=1, value="500m圏内 駅まとめ").font = SUB_HEADER_FONT
+            row += 1
+            total_ridership = int(flow.get("raw_score", 0))
+            station_count = flow.get("station_count", 0)
+            ws.cell(row=row, column=1, value="合計乗降客数").border = THIN_BORDER
+            cell_total = ws.cell(row=row, column=2, value=total_ridership)
+            cell_total.border = THIN_BORDER
+            cell_total.number_format = '#,##0'
+            cell_total.font = Font(bold=True)
+            ws.cell(row=row, column=3, value=f"駅数: {station_count}").border = THIN_BORDER
             row += 1
             for st in stations[:5]:
                 ws.cell(row=row, column=1, value=st["name"]).border = THIN_BORDER

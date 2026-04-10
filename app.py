@@ -220,6 +220,7 @@ with tab_rank:
         "にぎわい": round(p["vibrancy"]["score"], 1),
         "ランク": p["vibrancy"]["rank"],
         "流量%ile": round(p["vibrancy"]["flow_percentile"], 1),
+        "500m乗降合計": int(p.get("flow", {}).get("raw_score", 0)),
         "商業数": p["vibrancy"]["commercial_count"],
         "老朽": "●" if p["badges"]["aging"] else "",
         "子育て": "●" if p["badges"]["childcare"] else "",
@@ -240,6 +241,7 @@ with tab_rank:
                 "にぎわい", format="%.1f", min_value=0, max_value=100
             ),
             "流量%ile": st.column_config.NumberColumn(format="%.1f"),
+            "500m乗降合計": st.column_config.NumberColumn(format="%d"),
             "面積(m²)": st.column_config.NumberColumn(format="%d"),
         },
     )
@@ -319,7 +321,26 @@ with tab_profile:
     col_l, col_r = st.columns([1, 1])
     with col_l:
         v = p["vibrancy"]
+        flow_data = p.get("flow", {})
+        nearest_station = flow_data.get("nearest_station")
+        total_ridership = int(flow_data.get("raw_score", 0))
+        station_count = flow_data.get("station_count", 0)
+
         st.metric("にぎわいスコア", f"{v['score']:.1f}", f"ランク {v['rank']}")
+
+        # 最寄駅・500m合計乗降のサマリ (新規追加)
+        if nearest_station:
+            st.write(
+                f"**最寄駅**: {nearest_station['name']} "
+                f"({nearest_station['distance_m']}m、乗降 {nearest_station['ridership']:,})"
+            )
+        else:
+            st.write("**最寄駅**: 500m圏内になし")
+        st.write(
+            f"**500m圏内 合計乗降客数**: {total_ridership:,} 人 "
+            f"({station_count}駅)"
+        )
+
         st.write(f"**面積**: {p['area_m2']:,} m²")
         st.write(f"**種別**: {p['type_name']}")
         st.write(f"**開園年**: {p.get('year_opened') or '不明'}")
@@ -359,16 +380,19 @@ with tab_profile:
     st.markdown("---")
     col_s, col_f = st.columns(2)
     with col_s:
-        st.write("**最寄駅**")
+        st.write("**500m圏内の駅**")
         stations = p.get("flow", {}).get("station_details", [])
         if stations:
+            st.write(
+                f"合計乗降客数: **{total_ridership:,} 人** / 駅数: {station_count}"
+            )
             for st_info in stations[:5]:
                 st.write(
                     f"- {st_info['name']} "
                     f"({st_info['distance_m']}m、乗降{st_info['ridership']:,})"
                 )
         else:
-            st.write("データなし")
+            st.write("500m圏内に駅なし")
 
     with col_f:
         st.write("**周辺施設（半径500m）**")
